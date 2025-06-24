@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String?
+  emailVerified     DateTime?
+  image             String?
+  password          String?   // For email/password auth
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  accounts          Account[]
+  sessions          Session[]
+  secrets           Secret[]
+  sharedSecrets     SharedSecret[]
+  
+  @@map("users")
+}
+
+// NextAuth.js Account model
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth.js Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// NextAuth.js VerificationToken model
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// Secret/File sharing models
+model Secret {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  content         String         @db.Text // Encrypted content
+  contentType     SecretType     @default(TEXT)
+  fileName        String?        // For file uploads
+  fileSize        Int?           // File size in bytes
+  mimeType        String?        // MIME type for files
+  
+  // Security settings
+  password        String?        // Optional password protection
+  expiresAt       DateTime?      // Auto-deletion date
+  maxViews        Int?           // Max number of views
+  currentViews    Int            @default(0)
+  deleteAfterView Boolean        @default(false)
+  
+  // Access control
+  isPublic        Boolean        @default(false)
+  allowedEmails   String[]       // List of allowed email addresses
+  
+  // Metadata
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  createdById     String
+  isActive        Boolean        @default(true)
+  
+  // Relations
+  createdBy       User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  sharedWith      SharedSecret[]
+  accessLogs      AccessLog[]
+  
+  @@map("secrets")
+}
+
+// Junction table for sharing secrets with specific users
+model SharedSecret {
+  id          String      @id @default(cuid())
+  secretId    String
+  userId      String?     // Null if shared via link only
+  email       String?     // Email for non-registered users
+  permissions Permission  @default(VIEW)
+  sharedAt    DateTime    @default(now())
+  accessedAt  DateTime?   // When they first accessed it
+  
+  // Relations
+  secret      Secret      @relation(fields: [secretId], references: [id], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([secretId, userId])
+  @@unique([secretId, email])
+  @@map("shared_secrets")
+}
+
+// Access logging for security and analytics
+model AccessLog {
+  id          String   @id @default(cuid())
+  secretId    String
+  userId      String?  // Null for anonymous access
+  email       String?  // Email if provided
+  ipAddress   String?
+  userAgent   String?
+  accessedAt  DateTime @default(now())
+  
+  // Relations
+  secret      Secret   @relation(fields: [secretId], references: [id], onDelete: Cascade)
+  
+  @@map("access_logs")
+}
+
+// Enums
+enum SecretType {
+  TEXT
+  FILE
+  IMAGE
+  DOCUMENT
+}
+
+enum Permission {
+  VIEW
+  DOWNLOAD
+  EDIT
+}

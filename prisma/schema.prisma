@@ -132,7 +132,21 @@ model SharedSecret {
   @@map("shared_secrets")
 }
 
-
+// Access logging for security and analytics
+model AccessLog {
+  id         String   @id @default(cuid())
+  secretId   String
+  userId     String?  // Null for anonymous access
+  ipAddress  String
+  userAgent  String
+  accessedAt DateTime @default(now())
+  
+  // Relations
+  secret     Secret   @relation(fields: [secretId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("access_logs")
+}
 
 // Enums
 enum SecretType {

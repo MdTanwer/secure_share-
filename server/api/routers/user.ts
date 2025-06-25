@@ -57,6 +57,7 @@ export const userRouter = createTRPCRouter({
           },
         ],
       },
+      // Include the secret details
       include: {
         secret: {
           select: {

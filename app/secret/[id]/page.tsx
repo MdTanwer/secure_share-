@@ -238,7 +238,7 @@ export default function ViewSecretPage() {
 
           {/* Security Status Chips */}
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
-            {secret.expiresAt && (
+            {secret.expiresAt ? (
               <Chip
                 size="small"
                 icon={<Timer />}
@@ -246,6 +246,14 @@ export default function ViewSecretPage() {
                   secret.expiresAt
                 ).toLocaleString()}`}
                 color="warning"
+                variant="outlined"
+              />
+            ) : (
+              <Chip
+                size="small"
+                icon={<Timer />}
+                label="No expiry"
+                color="success"
                 variant="outlined"
               />
             )}

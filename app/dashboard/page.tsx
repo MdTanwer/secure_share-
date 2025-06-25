@@ -381,12 +381,20 @@ export default function DashboardPage() {
                         variant="outlined"
                       />
                     )}
-                    {secret.expiresAt && (
+                    {secret.expiresAt ? (
                       <Chip
                         size="small"
                         icon={<Timer />}
                         label={new Date(secret.expiresAt).toLocaleDateString()}
                         variant="outlined"
+                      />
+                    ) : (
+                      <Chip
+                        size="small"
+                        icon={<Timer />}
+                        label="No expiry"
+                        variant="outlined"
+                        color="success"
                       />
                     )}
                   </Box>

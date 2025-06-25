@@ -450,3 +450,138 @@ export {
   DEFAULT_EXPIRATION_DURATION,
   EXPIRATION_OPTIONS,
 } from "@/lib/constants";
+
+// ============================================================================
+// CACHE DATA TYPES
+// ============================================================================
+
+export interface UserSessionData {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface SecretMetadata {
+  id: string;
+  title: string;
+  description?: string;
+  contentType: "TEXT" | "FILE";
+  fileName?: string;
+  expiresAt: Date | null;
+  deleteAfterView: boolean;
+  isPublic: boolean;
+  maxViews?: number;
+  currentViews: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  hasPassword: boolean;
+}
+
+export interface AccessLogMetadata {
+  secretId: string;
+  userId?: string;
+  timestamp: number;
+  action?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  [key: string]: string | number | undefined;
+}
+
+// ============================================================================
+// SECRET OPERATION TYPES
+// ============================================================================
+
+export interface Secret {
+  id: string;
+  title: string;
+  description?: string;
+  content: string;
+  contentType: "TEXT" | "FILE";
+  fileName?: string;
+  password?: string;
+  expiresAt: Date | null;
+  deleteAfterView: boolean;
+  isPublic: boolean;
+  maxViews?: number;
+  currentViews: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+}
+
+export interface CacheCreateSecretInput {
+  title: string;
+  description?: string;
+  content: string;
+  contentType?: "TEXT" | "FILE";
+  password?: string;
+  expiresAt: Date;
+  deleteAfterView?: boolean;
+  isPublic?: boolean;
+  maxViews?: number;
+}
+
+// ============================================================================
+// RATE LIMITING TYPES
+// ============================================================================
+
+export interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  resetTime: number;
+  retryAfter?: number;
+}
+
+export interface RateLimitOptions {
+  requests: number;
+  windowMs: number;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
+  keyGenerator?: (identifier: string) => string;
+}
+
+// Express-like request interface
+export interface ExpressRequest {
+  ip: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: unknown;
+  params?: Record<string, string>;
+  query?: Record<string, string | string[]>;
+}
+
+// Express-like response interface
+export interface ExpressResponse {
+  setHeader(name: string, value: string | number): void;
+  status(code: number): ExpressResponse;
+  json(data: unknown): void;
+}
+
+// Next function type
+export type NextFunction = () => void;
+
+// ============================================================================
+// DATABASE TYPES
+// ============================================================================
+
+export interface DatabaseSecret {
+  id: string;
+  title: string;
+  description: string | null;
+  contentType: string;
+  fileName: string | null;
+  expiresAt: Date | null;
+  deleteAfterView: boolean;
+  isPublic: boolean;
+  maxViews: number | null;
+  currentViews: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  password: string | null;
+  content: string;
+}

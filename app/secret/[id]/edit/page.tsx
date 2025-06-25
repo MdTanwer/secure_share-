@@ -299,7 +299,7 @@ export default function EditSecretPage() {
       id: string;
       title?: string;
       content?: string;
-      expiresAt?: Date;
+      expiresAt?: Date | null;
       password?: string;
       maxViews?: number;
     } = {
@@ -317,6 +317,8 @@ export default function EditSecretPage() {
 
     if (settings.expirationEnabled) {
       updateData.expiresAt = calculateExpirationDate();
+    } else {
+      updateData.expiresAt = null;
     }
 
     if (settings.limitViews && formData.maxViews) {

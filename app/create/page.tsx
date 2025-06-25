@@ -210,13 +210,12 @@ export default function CreateSecretPage() {
     const submitData: {
       title: string;
       content: string;
-      expiresAt: Date;
+      expiresAt?: Date;
       password?: string;
       maxViews?: number;
     } = {
       title: formData.title.trim() || "Untitled Secret",
       content: formData.content.trim(),
-      expiresAt: new Date(), // Will be set below
     };
 
     // Add optional fields only if they're enabled and have values
@@ -226,11 +225,6 @@ export default function CreateSecretPage() {
 
     if (settings.expirationEnabled) {
       submitData.expiresAt = calculateExpirationDate();
-    } else {
-      // Set default expiration (24 hours from now)
-      const defaultExpiration = new Date();
-      defaultExpiration.setHours(defaultExpiration.getHours() + 24);
-      submitData.expiresAt = defaultExpiration;
     }
 
     if (settings.limitViews && formData.maxViews) {

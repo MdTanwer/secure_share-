@@ -18,8 +18,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-} from "@mui/material";
-import {
   Security,
   TextFields,
   AttachFile,
@@ -28,7 +26,7 @@ import {
   Password,
   Save,
   ArrowBack,
-} from "@mui/icons-material";
+} from "@/lib/mui-components";
 import { useAuth } from "@/components/providers/auth-provider";
 import { trpc } from "@/components/providers/trpc-provider";
 import AuthModal from "@/components/auth/auth-modal";

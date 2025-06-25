@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box } from "@/lib/mui-components";
 
 export default function ConditionalLayout({
   children,

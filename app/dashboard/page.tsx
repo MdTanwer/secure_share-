@@ -18,8 +18,6 @@ import {
   Paper,
   Divider,
   CircularProgress,
-} from "@mui/material";
-import {
   Add,
   Search,
   MoreVert,
@@ -31,7 +29,7 @@ import {
   Lock,
   Security,
   Dashboard as DashboardIcon,
-} from "@mui/icons-material";
+} from "@/lib/mui-components";
 import Link from "next/link";
 import { trpc } from "@/components/providers/trpc-provider";
 

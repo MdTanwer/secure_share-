@@ -16,8 +16,6 @@ import {
   Chip,
   IconButton,
   InputAdornment,
-} from "@mui/material";
-import {
   Visibility,
   VisibilityOff,
   ContentCopy,
@@ -26,8 +24,8 @@ import {
   CheckCircle,
   Timer,
   Lock,
-  Error as ErrorIcon,
-} from "@mui/icons-material";
+  Error,
+} from "@/lib/mui-components";
 import { trpc } from "@/components/providers/trpc-provider";
 
 export default function ViewSecretPage() {
@@ -131,7 +129,7 @@ export default function ViewSecretPage() {
     return (
       <Container maxWidth="md">
         <Box sx={{ py: 8, textAlign: "center" }}>
-          <ErrorIcon sx={{ fontSize: 64, color: "error.main", mb: 2 }} />
+          <Error sx={{ fontSize: 64, color: "error.main", mb: 2 }} />
           <Typography variant="h4" gutterBottom>
             Secret Not Found
           </Typography>

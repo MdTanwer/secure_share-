@@ -23,8 +23,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-} from "@mui/material";
-import {
   Security,
   TextFields,
   AttachFile,
@@ -34,8 +32,8 @@ import {
   CheckCircle,
   ContentCopy,
   Share,
-  Link as LinkIcon,
-} from "@mui/icons-material";
+  Link,
+} from "@/lib/mui-components";
 import { useAuth } from "@/components/providers/auth-provider";
 import { trpc } from "@/components/providers/trpc-provider";
 import AuthModal from "@/components/auth/auth-modal";
@@ -592,7 +590,7 @@ export default function CreateSecretPage() {
         fullWidth
       >
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <LinkIcon color="primary" />
+          <Link color="primary" />
           Secret Created Successfully!
         </DialogTitle>
         <DialogContent>

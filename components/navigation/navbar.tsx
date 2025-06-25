@@ -12,14 +12,11 @@ import {
   MenuItem,
   Avatar,
   Chip,
-} from "@mui/material";
-import {
   Security,
   Add,
   Dashboard,
-  AccountCircle,
   Logout,
-} from "@mui/icons-material";
+} from "@/lib/mui-components";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
 import AuthModal from "@/components/auth/auth-modal";
@@ -92,15 +89,6 @@ export default function Navbar() {
                   Create Secret
                 </Button>
 
-                <Button
-                  component={Link}
-                  href="/dashboard"
-                  startIcon={<Dashboard />}
-                  color="inherit"
-                >
-                  Dashboard
-                </Button>
-
                 <Chip
                   avatar={<Avatar>{user.name[0].toUpperCase()}</Avatar>}
                   label={user.name}
@@ -128,10 +116,14 @@ export default function Navbar() {
                     horizontal: "right",
                   }}
                 >
-                  <MenuItem onClick={handleUserMenuClose}>
-                    <AccountCircle sx={{ mr: 1 }} />
-                    Profile
-                  </MenuItem>
+                  <Button
+                    component={Link}
+                    href="/dashboard"
+                    startIcon={<Dashboard />}
+                    color="inherit"
+                  >
+                    Dashboard
+                  </Button>
                   <MenuItem onClick={handleLogout}>
                     <Logout sx={{ mr: 1 }} />
                     Logout

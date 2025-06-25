@@ -14,15 +14,13 @@ import {
   IconButton,
   Divider,
   CircularProgress,
-} from "@mui/material";
-import {
   Visibility,
   VisibilityOff,
   Email,
   Lock,
   Person,
   Security,
-} from "@mui/icons-material";
+} from "@/lib/mui-components";
 import { trpc } from "@/components/providers/trpc-provider";
 import { useAuth } from "@/components/providers/auth-provider";
 

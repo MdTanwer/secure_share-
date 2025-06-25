@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@mui/material/styles";
-import { CssBaseline, Box } from "@mui/material";
+import { ThemeProvider, CssBaseline, Box } from "@/lib/mui-components";
 import { theme } from "@/lib/theme";
 import { TRPCProvider } from "@/components/providers/trpc-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";

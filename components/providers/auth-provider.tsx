@@ -7,20 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  setAuth: (token: string, user: User) => void;
-  logout: () => void;
-  isLoading: boolean;
-}
+import { type User, type AuthContextType } from "@/lib/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

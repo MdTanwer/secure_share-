@@ -1,40 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
-  TextField,
   Button,
+  TextField,
   Box,
   Typography,
   Alert,
   InputAdornment,
+  Person,
+  Email,
+  Password,
   IconButton,
   Divider,
   CircularProgress,
   Visibility,
   VisibilityOff,
-  Email,
-  Lock,
-  Person,
   Security,
 } from "@/lib/mui-components";
-import { trpc } from "@/components/providers/trpc-provider";
 import { useAuth } from "@/components/providers/auth-provider";
-
-interface AuthModalProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-type AuthStep = "login" | "register" | "verify";
+import { trpc } from "@/components/providers/trpc-provider";
+import {
+  type AuthModalProps,
+  type AuthStep,
+  type AuthFormData,
+} from "@/lib/types";
 
 export default function AuthModal({ open, onClose }: AuthModalProps) {
   const { setAuth } = useAuth();
   const [step, setStep] = useState<AuthStep>("login");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthFormData>({
     name: "",
     email: "",
     password: "",
@@ -230,7 +228,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock />
+                    <Password />
                   </InputAdornment>
                 ),
                 endAdornment: (

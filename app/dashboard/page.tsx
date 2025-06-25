@@ -28,7 +28,6 @@ import {
   Timer,
   Lock,
   Security,
-  Dashboard as DashboardIcon,
 } from "@/lib/mui-components";
 import Link from "next/link";
 import { trpc } from "@/components/providers/trpc-provider";
@@ -156,14 +155,6 @@ export default function DashboardPage() {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
-          <DashboardIcon color="primary" sx={{ fontSize: 32 }} />
-          <Typography variant="h3" component="h1">
-            Dashboard
-          </Typography>
-        </Box>
-
         {/* Actions Bar */}
         <Paper sx={{ p: 3, mb: 4 }}>
           <Box
@@ -174,16 +165,6 @@ export default function DashboardPage() {
               flexWrap: "wrap",
             }}
           >
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              component={Link}
-              href="/create"
-              size="large"
-            >
-              Create New Secret
-            </Button>
-
             <TextField
               placeholder="Search secrets..."
               value={searchTerm}

@@ -10,7 +10,6 @@ import {
   Box,
   FormControlLabel,
   Switch,
-  Chip,
   Alert,
   CircularProgress,
   Dialog,
@@ -24,8 +23,6 @@ import {
   FormControl,
   InputLabel,
   Security,
-  TextFields,
-  AttachFile,
   Schedule,
   Visibility,
   Password,
@@ -37,49 +34,41 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 import { trpc } from "@/components/providers/trpc-provider";
 import AuthModal from "@/components/auth/auth-modal";
+import {
+  EXPIRATION_OPTIONS,
+  DEFAULT_EXPIRATION_DURATION,
+} from "@/lib/constants";
+import {
+  type SecretFormData,
+  type SecretFormSettings,
+  type CreatedSecret,
+  type ExpirationDuration,
+  type ExpirationUnit,
+  type FormErrors,
+} from "@/lib/types";
 
 export default function CreateSecretPage() {
   const { user, isLoading } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [secretType, setSecretType] = useState<"text" | "file">("text");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SecretFormData>({
     title: "",
     content: "",
     password: "",
     maxViews: "",
   });
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SecretFormSettings>({
     passwordProtected: false,
     expirationEnabled: false,
     limitViews: false,
   });
-  const [expirationDuration, setExpirationDuration] = useState({
-    value: 24,
-    unit: "hours" as "minutes" | "hours" | "days" | "months",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [expirationDuration, setExpirationDuration] =
+    useState<ExpirationDuration>(DEFAULT_EXPIRATION_DURATION);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState("");
-  const [createdSecret, setCreatedSecret] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+  const [createdSecret, setCreatedSecret] = useState<CreatedSecret | null>(
+    null
+  );
   const [shareModalOpen, setShareModalOpen] = useState(false);
-
-  // Expiration options
-  const expirationOptions = [
-    { value: 5, unit: "minutes", label: "5 minutes" },
-    { value: 15, unit: "minutes", label: "15 minutes" },
-    { value: 30, unit: "minutes", label: "30 minutes" },
-    { value: 1, unit: "hours", label: "1 hour" },
-    { value: 3, unit: "hours", label: "3 hours" },
-    { value: 6, unit: "hours", label: "6 hours" },
-    { value: 12, unit: "hours", label: "12 hours" },
-    { value: 24, unit: "hours", label: "1 day" },
-    { value: 3, unit: "days", label: "3 days" },
-    { value: 7, unit: "days", label: "1 week" },
-    { value: 30, unit: "days", label: "1 month" },
-    { value: 90, unit: "days", label: "3 months" },
-  ];
 
   // Calculate expiration date based on duration
   const calculateExpirationDate = () => {
@@ -184,7 +173,7 @@ export default function CreateSecretPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: FormErrors = {};
 
     // Required fields
     if (!formData.content.trim()) {
@@ -221,14 +210,12 @@ export default function CreateSecretPage() {
     const submitData: {
       title: string;
       content: string;
-      contentType: "TEXT" | "FILE";
       expiresAt: Date;
       password?: string;
       maxViews?: number;
     } = {
       title: formData.title.trim() || "Untitled Secret",
       content: formData.content.trim(),
-      contentType: secretType.toUpperCase() as "TEXT" | "FILE",
       expiresAt: new Date(), // Will be set below
     };
 
@@ -325,37 +312,6 @@ export default function CreateSecretPage() {
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Secret Type Selection */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Secret Type
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Chip
-                icon={<TextFields />}
-                label="Text Secret"
-                onClick={() => setSecretType("text")}
-                color={secretType === "text" ? "primary" : "default"}
-                variant={secretType === "text" ? "filled" : "outlined"}
-              />
-              <Chip
-                icon={<AttachFile />}
-                label="File Upload"
-                onClick={() => setSecretType("file")}
-                color={secretType === "file" ? "primary" : "default"}
-                variant={secretType === "file" ? "filled" : "outlined"}
-                disabled
-              />
-            </Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 1, display: "block" }}
-            >
-              File upload coming soon. Text secrets are available now.
-            </Typography>
-          </Box>
-
           {/* Basic Information */}
           <Box sx={{ mb: 3 }}>
             <TextField
@@ -370,43 +326,21 @@ export default function CreateSecretPage() {
               disabled={createSecretMutation.isPending}
             />
 
-            {secretType === "text" ? (
-              <TextField
-                fullWidth
-                multiline
-                rows={6}
-                label="Secret Content"
-                value={formData.content}
-                onChange={(e) =>
-                  setFormData({ ...formData, content: e.target.value })
-                }
-                placeholder="Enter your secret content here..."
-                required
-                error={!!errors.content}
-                helperText={errors.content}
-                disabled={createSecretMutation.isPending}
-              />
-            ) : (
-              <Box
-                sx={{
-                  border: "2px dashed",
-                  borderColor: "grey.300",
-                  borderRadius: 2,
-                  p: 4,
-                  textAlign: "center",
-                  bgcolor: "grey.50",
-                }}
-              >
-                <AttachFile sx={{ fontSize: 48, color: "grey.400", mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  File Upload Coming Soon
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  File upload functionality will be available in a future
-                  update.
-                </Typography>
-              </Box>
-            )}
+            <TextField
+              fullWidth
+              multiline
+              rows={6}
+              label="Secret Content"
+              value={formData.content}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
+              placeholder="Enter your secret content here..."
+              required
+              error={!!errors.content}
+              helperText={errors.content}
+              disabled={createSecretMutation.isPending}
+            />
           </Box>
 
           {/* Security Settings */}
@@ -489,16 +423,12 @@ export default function CreateSecretPage() {
                           const [value, unit] = e.target.value.split("-");
                           setExpirationDuration({
                             value: parseInt(value),
-                            unit: unit as
-                              | "minutes"
-                              | "hours"
-                              | "days"
-                              | "months",
+                            unit: unit as ExpirationUnit,
                           });
                         }}
                         disabled={createSecretMutation.isPending}
                       >
-                        {expirationOptions.map((option) => (
+                        {EXPIRATION_OPTIONS.map((option) => (
                           <MenuItem
                             key={`${option.value}-${option.unit}`}
                             value={`${option.value}-${option.unit}`}
@@ -653,14 +583,6 @@ export default function CreateSecretPage() {
         <DialogActions>
           <Button onClick={handleCloseShareModal} variant="outlined">
             Close
-          </Button>
-          <Button
-            onClick={() =>
-              window.open(`/secret/${createdSecret?.id}`, "_blank")
-            }
-            variant="contained"
-          >
-            View Secret
           </Button>
         </DialogActions>
       </Dialog>

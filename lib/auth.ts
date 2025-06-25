@@ -1,21 +1,10 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { type SessionUser, type AuthTokenPayload } from "@/lib/types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-fallback-secret-key";
-
-export interface SessionUser {
-  id: string;
-  email: string;
-  name: string;
-}
-
-export interface AuthTokenPayload {
-  userId: string;
-  email: string;
-  name: string;
-  iat?: number;
-  exp?: number;
-}
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  "f0c1e5f5a9f85c1a2f2d96d3e51ecf3d3d3bb1cfe4789a514c53a0e5a8f74a42";
 
 // Generate JWT token
 export const generateToken = (user: SessionUser): string => {

@@ -31,6 +31,18 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { trpc } from "@/components/providers/trpc-provider";
 import AuthModal from "@/components/auth/auth-modal";
 import Link from "next/link";
+import {
+  EXPIRATION_OPTIONS,
+  DEFAULT_EXPIRATION_DURATION,
+} from "@/lib/constants";
+import {
+  type SecretFormData,
+  type SecretFormSettings,
+  type ExpirationDuration,
+  type ExpirationUnit,
+  type FormErrors,
+  type SecretType,
+} from "@/lib/types";
 
 export default function EditSecretPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -39,40 +51,22 @@ export default function EditSecretPage() {
   const router = useRouter();
   const secretId = params.id as string;
 
-  const [secretType, setSecretType] = useState<"text" | "file">("text");
-  const [formData, setFormData] = useState({
+  const [secretType, setSecretType] = useState<SecretType>("text");
+  const [formData, setFormData] = useState<SecretFormData>({
     title: "",
     content: "",
     password: "",
     maxViews: "",
   });
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SecretFormSettings>({
     passwordProtected: false,
     expirationEnabled: false,
     limitViews: false,
   });
-  const [expirationDuration, setExpirationDuration] = useState({
-    value: 24,
-    unit: "hours" as "minutes" | "hours" | "days" | "months",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [expirationDuration, setExpirationDuration] =
+    useState<ExpirationDuration>(DEFAULT_EXPIRATION_DURATION);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState("");
-
-  // Expiration options
-  const expirationOptions = [
-    { value: 5, unit: "minutes", label: "5 minutes" },
-    { value: 15, unit: "minutes", label: "15 minutes" },
-    { value: 30, unit: "minutes", label: "30 minutes" },
-    { value: 1, unit: "hours", label: "1 hour" },
-    { value: 3, unit: "hours", label: "3 hours" },
-    { value: 6, unit: "hours", label: "6 hours" },
-    { value: 12, unit: "hours", label: "12 hours" },
-    { value: 24, unit: "hours", label: "1 day" },
-    { value: 3, unit: "days", label: "3 days" },
-    { value: 7, unit: "days", label: "1 week" },
-    { value: 30, unit: "days", label: "1 month" },
-    { value: 90, unit: "days", label: "3 months" },
-  ];
 
   // Get secret data
   const {
@@ -263,7 +257,7 @@ export default function EditSecretPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: FormErrors = {};
 
     // Required fields
     if (!formData.content.trim()) {
@@ -547,16 +541,12 @@ export default function EditSecretPage() {
                           const [value, unit] = e.target.value.split("-");
                           setExpirationDuration({
                             value: parseInt(value),
-                            unit: unit as
-                              | "minutes"
-                              | "hours"
-                              | "days"
-                              | "months",
+                            unit: unit as ExpirationUnit,
                           });
                         }}
                         disabled={updateSecretMutation.isPending}
                       >
-                        {expirationOptions.map((option) => (
+                        {EXPIRATION_OPTIONS.map((option) => (
                           <MenuItem
                             key={`${option.value}-${option.unit}`}
                             value={`${option.value}-${option.unit}`}

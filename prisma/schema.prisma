@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -14,14 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication
+// Simplified User model for authentication
 model User {
   id                String    @id @default(cuid())
+  name              String
   email             String    @unique
-  name              String?
-  emailVerified     DateTime?
-  image             String?
-  password          String?   // For email/password auth
+  password          String
+  emailVerified     Boolean   @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   
@@ -30,8 +22,21 @@ model User {
   sessions          Session[]
   secrets           Secret[]
   sharedSecrets     SharedSecret[]
+  accessLogs        AccessLog[]
   
   @@map("users")
+}
+
+// Email verification codes
+model VerificationCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  
+  @@map("verification_codes")
 }
 
 // NextAuth.js Account model
@@ -76,43 +81,39 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
-// Secret/File sharing models
+// Secret model for encrypted content sharing
 model Secret {
-  id              String         @id @default(cuid())
+  id              String      @id @default(cuid())
   title           String
   description     String?
-  content         String         @db.Text // Encrypted content
-  contentType     SecretType     @default(TEXT)
-  fileName        String?        // For file uploads
-  fileSize        Int?           // File size in bytes
-  mimeType        String?        // MIME type for files
-  
-  // Security settings
-  password        String?        // Optional password protection
-  expiresAt       DateTime?      // Auto-deletion date
-  maxViews        Int?           // Max number of views
-  currentViews    Int            @default(0)
-  deleteAfterView Boolean        @default(false)
+  content         String      // Encrypted content
+  contentType     SecretType  @default(TEXT)
+  fileName        String?     // For file uploads
+  password        String?     // Additional password protection
+  salt            String?     // For encryption
   
   // Access control
-  isPublic        Boolean        @default(false)
-  allowedEmails   String[]       // List of allowed email addresses
+  isActive        Boolean     @default(true)
+  isPublic        Boolean     @default(false)
+  expiresAt       DateTime?
+  deleteAfterView Boolean     @default(false)
+  maxViews        Int?
+  currentViews    Int         @default(0)
   
   // Metadata
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   createdById     String
-  isActive        Boolean        @default(true)
   
   // Relations
-  createdBy       User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  sharedWith      SharedSecret[]
+  createdBy       User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  sharedSecrets   SharedSecret[]
   accessLogs      AccessLog[]
   
   @@map("secrets")
 }
 
-// Junction table for sharing secrets with specific users
+// Sharing permissions for secrets
 model SharedSecret {
   id          String      @id @default(cuid())
   secretId    String
@@ -143,6 +144,7 @@ model AccessLog {
   
   // Relations
   secret      Secret   @relation(fields: [secretId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("access_logs")
 }

@@ -11,19 +11,9 @@ export const secretRouter = createTRPCRouter({
     return ctx.db.secret.findMany({
       where: {
         createdById: ctx.session.user.id,
-        isActive: true,
+        isActive: true, // Only fetch active secrets
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        _count: {
-          select: {
-            sharedWith: true,
-            accessLogs: true,
-          },
-        },
-      },
+      orderBy: { createdAt: "desc" },
     });
   }),
 
@@ -31,30 +21,29 @@ export const secretRouter = createTRPCRouter({
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.secret.findUnique({
-        where: {
-          id: input.id,
-          isActive: true,
-        },
-        include: {
-          createdBy: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          sharedWith: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
+      const secret = await ctx.db.secret.findUnique({
+        where: { id: input.id },
       });
+
+      if (!secret) {
+        throw new Error("Secret not found");
+      }
+
+      // Check if secret is expired or exceeded max views
+      const now = new Date();
+      if (secret.expiresAt && now > secret.expiresAt) {
+        throw new Error("Secret has expired");
+      }
+
+      if (secret.maxViews && secret.currentViews >= secret.maxViews) {
+        throw new Error("Secret has reached maximum views");
+      }
+
+      if (!secret.isActive) {
+        throw new Error("Secret is not active");
+      }
+
+      return secret;
     }),
 
   // Create a new secret
@@ -64,16 +53,12 @@ export const secretRouter = createTRPCRouter({
         title: z.string().min(1),
         description: z.string().optional(),
         content: z.string().min(1),
-        contentType: z.enum(["TEXT", "FILE", "IMAGE", "DOCUMENT"]),
-        fileName: z.string().optional(),
-        fileSize: z.number().optional(),
-        mimeType: z.string().optional(),
+        contentType: z.enum(["TEXT", "FILE"]).default("TEXT"),
         password: z.string().optional(),
-        expiresAt: z.date().optional(),
-        maxViews: z.number().optional(),
+        expiresAt: z.date(),
         deleteAfterView: z.boolean().default(false),
         isPublic: z.boolean().default(false),
-        allowedEmails: z.array(z.string().email()).default([]),
+        maxViews: z.number().positive().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -81,6 +66,8 @@ export const secretRouter = createTRPCRouter({
         data: {
           ...input,
           createdById: ctx.session.user.id,
+          currentViews: 0,
+          isActive: true,
         },
       });
     }),
@@ -93,21 +80,26 @@ export const secretRouter = createTRPCRouter({
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         content: z.string().min(1).optional(),
+        password: z.string().optional(),
         expiresAt: z.date().optional(),
-        maxViews: z.number().optional(),
         deleteAfterView: z.boolean().optional(),
         isPublic: z.boolean().optional(),
-        allowedEmails: z.array(z.string().email()).optional(),
+        maxViews: z.number().positive().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
 
+      const secret = await ctx.db.secret.findUnique({
+        where: { id },
+      });
+
+      if (!secret || secret.createdById !== ctx.session.user.id) {
+        throw new Error("Secret not found or unauthorized");
+      }
+
       return ctx.db.secret.update({
-        where: {
-          id,
-          createdById: ctx.session.user.id, // Ensure user can only update their own secrets
-        },
+        where: { id },
         data: updateData,
       });
     }),
@@ -116,14 +108,17 @@ export const secretRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const secret = await ctx.db.secret.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!secret || secret.createdById !== ctx.session.user.id) {
+        throw new Error("Secret not found or unauthorized");
+      }
+
       return ctx.db.secret.update({
-        where: {
-          id: input.id,
-          createdById: ctx.session.user.id,
-        },
-        data: {
-          isActive: false,
-        },
+        where: { id: input.id },
+        data: { isActive: false },
       });
     }),
 
@@ -132,34 +127,38 @@ export const secretRouter = createTRPCRouter({
     .input(
       z.object({
         secretId: z.string(),
-        email: z.string().email().optional(),
-        ipAddress: z.string().optional(),
-        userAgent: z.string().optional(),
+        ipAddress: z.string(),
+        userAgent: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { secretId, ...logData } = input;
+      // First, increment the view count
+      const secret = await ctx.db.secret.update({
+        where: { id: input.secretId },
+        data: {
+          currentViews: { increment: 1 },
+        },
+      });
 
-      // Create access log
+      // Log the access
       await ctx.db.accessLog.create({
         data: {
-          secretId,
-          userId: ctx.session?.user?.id,
-          ...logData,
+          secretId: input.secretId,
+          ipAddress: input.ipAddress,
+          userAgent: input.userAgent,
+          accessedAt: new Date(),
         },
       });
 
-      // Increment view count
-      return ctx.db.secret.update({
-        where: {
-          id: secretId,
-        },
-        data: {
-          currentViews: {
-            increment: 1,
-          },
-        },
-      });
+      // If it's a one-time view secret, mark it as inactive
+      if (secret.deleteAfterView) {
+        await ctx.db.secret.update({
+          where: { id: input.secretId },
+          data: { isActive: false },
+        });
+      }
+
+      return { success: true };
     }),
 
   // Share a secret with users

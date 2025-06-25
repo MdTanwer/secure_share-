@@ -1,20 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
-import { useState } from "react";
 import superjson from "superjson";
 
-import { type AppRouter } from "@/server/api/root";
+import type { AppRouter } from "@/server/api/root";
 
 export const trpc = createTRPCReact<AppRouter>();
-
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-}
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -22,8 +16,20 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
+          url: "/api/trpc",
           transformer: superjson,
+          headers() {
+            // Get auth token from localStorage
+            if (typeof window !== "undefined") {
+              const token = localStorage.getItem("auth-token");
+              if (token) {
+                return {
+                  Authorization: `Bearer ${token}`,
+                };
+              }
+            }
+            return {};
+          },
         }),
       ],
     })
